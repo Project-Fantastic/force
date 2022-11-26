@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package api;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+message UserProfile {
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    string email = 2;
+    string phone_number = 3;
+    string first_name = 4;
+    string last_name = 5;
+}
+
+message GetUserProfileByIDRequest {
+    uint64 user_id = 1 [(gogoproto.customname) = "UserID"];
+}
+
+message GetUserProfileByIDResponse {
+    UserProfile user_profile = 1;
+}
+
+message SignUpUserRequest {
+  string email = 1 [(gogoproto.moretags) = "validate:\"required,email\""];
+  string password = 2 [(gogoproto.moretags) = "validate:\"required\""];
+  string first_name = 3;
+  string last_name = 4;
+}
+
+message SignUpUserResponse {
+  bool success = 1;
+}
+
+message Product {
+    enum BillingType {
+        BILLING_TYPE_RECURRING = 0;
+        BILLING_TYPE_ONE_TIME = 1;
+    }
+
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    string name = 2;
+    BillingType billing_type = 3;
+    bool is_fixed_price = 4;
+    uint64 max_member_count = 5;
+}
+
+message GetProductsByBillingTypeRequest {
+    Product.BillingType billing_type = 1;
+}
+
+message GetProductsByBillingTypeResponse {
+    repeated Product products = 1;
+}
+
+message UserProduct {
+    message Price {
+        //this is used for real price if product is one_time
+        double total = 1; 
+        double min = 2;
+        double max = 3;
+    }
+
+    message MemberCount {
+        uint64 min = 1;
+        uint64 max = 2;
+    }
+
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    UserProfile host = 2;
+    Product product = 3;
+    string title = 4;
+    string description = 5;
+    Price price = 6;
+    MemberCount member_count = 7;
+    repeated Member members = 8;
+    bool active = 9;
+    uint64 created_at = 10;
+    uint64 updated_at = 11;
+}
+
+message Member {
+    uint64 user_id = 1 [(gogoproto.customname) = "UserID"];
+    string email = 2;
+    bool status = 3;
+    string first_name = 4;
+    string last_name = 5;
+    string phone_number = 6;
+}
+
+message GetProductByIdRequest {
+    string id = 1;
+}
+
+message GetProductByIdResponse {
+    Product product = 1;
+}
+
+message GetProductsRequest {
+    uint64 page_number = 1;
+    uint64 count = 2;
+    Product product_type = 3;
+}
+
+message GetProductsResponse {
+    repeated Product products = 1;
+    uint64 total = 2;
+}
+
+message CreateProductRequest {
+    Product product = 1;
+}
+
+message CreateProductResponse {
+    Product product = 1;
+    bool success = 2;
+}
+
+message ActivateProductRequest {
+    uint64 product_id = 1;
+}
+
+message ActivateProductResponse {
+    Product product = 1;
+    bool success = 2;
+}
+
+message OrderProductRequest {
+    uint64 product_id = 1;
+    uint64 user_id = 2;
+    string product_account = 3;
+}
+
+message OrderProductResponse {
+    Product product = 1;
+    bool success = 2;
+}
+
+enum UserProductMemberStatus {
+    USER_PRODUCT_MEMBER_STATUS_PENDING = 0;
+    USER_PRODUCT_MEMBER_STATUS_ACCEPTED_OR_DELIVERED = 1;
+    USER_PRODUCT_MEMBER_STATUS_REJECTED = 2;
+    USER_PRODUCT_MEMBER_STATUS_DELIVERED_CONFIRMED = 3;
+}
+
+message GetUserProductsRequest {
+  enum Status {
+    STATUS_ALL = 0;
+    STATUS_ACTIVE = 1;
+    STATUS_INACTIVE = 2;
+  }
+  enum Role {
+    ROLE_ALL = 0;
+    ROLE_HOST = 1;
+    ROLE_MEMBER = 2;
+  }
+  Status status = 1;
+  Role role = 2;
+}
+
+message GetUserProductsResponse {
+  repeated UserProduct user_products = 1;
+}

@@ -1,0 +1,12 @@
+app:
+  name: tamago
+  port: 8080
+  secret_key: secret-key
+  debug: true
+postgres:
+  host: bento_postgres 
+  port: 5432
+  user: postgres
+  password: bento
+  db: bento
+  ssl_mode: disable

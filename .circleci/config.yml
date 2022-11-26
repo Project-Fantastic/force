@@ -1,0 +1,69 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.13
+
+    working_directory: /go/src/tamago
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+
+      # install dependences
+      - run:
+          name: Install Go packages
+          command: |
+            go mod download
+            go get github.com/gogo/protobuf/protoc-gen-gogo
+            GO111MODULE=off go get -u -d github.com/gogo/protobuf/gogoproto
+            go get github.com/vektra/mockery/.../
+
+      # Generate files
+      - run:
+          name: Generate Protobuf and other files
+          command: |
+            archive=protoc-3.11.2-linux-x86_64
+            curl -ssL https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/$archive.zip -o /tmp/$archive.zip
+            sudo unzip -d '/usr/local' /tmp/$archive.zip 'bin/*' 'include/*'
+            mkdir -p ./internal/api
+            protoc -I=/go/src -I=./protobuf --gogo_out=./internal/api ./protobuf/api.proto
+            mockery -name=DataAccessIface -dir=./internal/dao -output=./internal/mocks
+            mockery -name=SessionIface -dir=./internal/sessions -output=./internal/mocks
+
+      # Go static check
+      - run:
+          name: Go static check
+          command: |
+            go mod vendor
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.21.0
+            golangci-lint --version
+            golangci-lint run -c build/golangci.yml -v ./...
+
+      # Protobuf static check
+      - run:
+          name: Protobuf static check
+          command: |
+            curl -sSL https://github.com/bufbuild/buf/releases/download/v0.4.0/buf-Linux-x86_64 -o "/home/circleci/.cache/buf"
+            chmod +x "/home/circleci/.cache/buf"
+            /home/circleci/.cache/buf check lint --input-config build/buf.yaml --log-level debug
+      
+      # Go unit tests
+      - run:
+          name: Go unit tests
+          command: |
+            mkdir -p ~/test-results/junit/
+            mkdir -p ~/test-results/reports/
+            gotestsum --junitfile ~/test-results/junit/go-unit-tests.xml -- -covermode=count -coverpkg=./... -coverprofile=cover.out ./... fmt
+            go tool cover -html=cover.out -o coverage.html
+            mv coverage.html ~/test-results/reports
+      - store_test_results:
+          path: ~/test-results/junit/
+      - store_artifacts:
+          path: ~/test-results/reports/
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"

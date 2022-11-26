@@ -1,0 +1,57 @@
+linters-setting:
+  govet:
+    check-shadowing: true
+    settings:
+      printf:
+        funcs:
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+  goimports:
+    local-prefixes: github.com/golangci/golangci-lint
+  dupl:
+    threshold: 100
+  lll:
+    line-length: 140
+  maligned:
+    suggest-new: true
+  misspell:
+    locale: US
+  golint:
+    min-confidence: 0
+ 
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - structcheck
+    - varcheck
+    - ineffassign
+    - deadcode
+    - typecheck
+    - gofmt
+    - goimports
+    - unparam
+    - whitespace
+    - dupl
+    - lll
+    - goconst
+    - misspell
+    - gosec
+    - bodyclose
+    - maligned
+    - golint
+
+run:
+  skip-dirs:
+    - internal/mocks
+
+service:
+  golangci-lint-version: 1.20.x
+  prepare:
+    - echo "Starting golangci-lint"

@@ -1,0 +1,15 @@
+build:
+  roots:
+    - ./vendor/
+    - ./protobuf/
+ 
+lint:
+  use:
+    - DEFAULT
+  except:
+    - FILE_LAYOUT
+    - ENUM_ZERO_VALUE_SUFFIX
+    - PACKAGE_VERSION_SUFFIX
+  ignore:
+    - github.com/gogo/protobuf/gogoproto/gogo.proto
+

@@ -1,0 +1,58 @@
+version: "3"
+services:
+  tamago:
+    build:
+      context: ../
+      dockerfile: ./build/Dockerfile
+    container_name: "tamago"
+    ports:
+      - "8081:8080"
+    networks:
+      - bento
+    volumes:
+      - ../:/go/src/tamago
+    depends_on:
+      - bento_postgres 
+  tamago-web:
+    build:
+      context: ../
+      dockerfile: ./build/node.js.Dockerfile
+    container_name: "tamago-web"
+    ports:
+      - "8082:3000"
+    networks:
+      - bento
+    volumes:
+      - ../:/usr/src/tamago
+      - node_modules:/usr/src/tamago/frontend/node_modules
+    depends_on:
+      - bento_postgres 
+  bento_postgres:
+    image: "postgres:11"
+    container_name: "postgres"
+    environment:
+      POSTGRES_DB: bento
+      POSTGRES_PASSWORD: bento
+    ports:
+      - "5432:5432"
+    networks:
+      - bento
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  nginx:
+    image: "nginx"
+    container_name: "nginx"
+    ports:
+      - "8080:80"
+    networks:
+      - bento
+    volumes:
+      - ./nginx.local.yml:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - tamago
+      - tamago-web
+networks:
+  bento:
+volumes:
+  postgres_data:
+  node_modules:
