@@ -19,10 +19,10 @@ func Run() {
 	}
 
 	viper.Set("ENV", envVar)
-	viper.Set("TEMPLATE_PATH", filepath.Join(goPath, "src/tamago/web/templates/*"))
+	viper.Set("TEMPLATE_PATH", filepath.Join(goPath, "src/force/web/templates/*"))
 
 	viper.SetConfigName(envVar + "_config")
-	viper.AddConfigPath(filepath.Join(goPath, "src/tamago/configs/"))
+	viper.AddConfigPath(filepath.Join(goPath, "src/force/configs/"))
 
 	err := viper.ReadInConfig()
 	if err != nil {

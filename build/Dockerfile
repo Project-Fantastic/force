@@ -1,12 +1,12 @@
-FROM golang:1.13
+FROM golang:1.19
 
-WORKDIR /go/src/tamago
+WORKDIR /go/src/force
 
-COPY . /go/src/tamago
+COPY . /go/src/force
 
-ARG protocVersion=3.11.2
-ARG golangciVersion=1.21.0
-ARG bufVersion=0.4.0
+ARG protocVersion=3.16.3
+ARG golangciVersion=1.50.1
+ARG bufVersion=1.9.0
 
 ENV GO111MODULE=on
 
