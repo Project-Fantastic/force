@@ -15,7 +15,7 @@ import (
 func main() {
 	goPath := os.Getenv("GOPATH")
 	viper.SetConfigName("development_config")
-	viper.AddConfigPath(filepath.Join(goPath, "src/tamago/configs/"))
+	viper.AddConfigPath(filepath.Join(goPath, "src/force/configs/"))
 
 	err := viper.ReadInConfig()
 	if err != nil {

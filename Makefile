@@ -1,11 +1,11 @@
 # Makefile for local and docker development
-ifeq ($(MAKEFILE_ENV), local)
+# ifeq ($(MAKEFILE_ENV), local)
 CMD = ""
 VENDOR_PATH = "$(GOPATH)/src"
-else
-CMD = "docker exec -it tamago"
-VENDOR_PATH = "/go/src"
-endif
+# else
+# CMD = "docker exec -it tamago"
+# VENDOR_PATH = "/go/src"
+# endif
 
 PROTO_SRC="./protobuf"
 PROTO_DST="./internal/api"
@@ -23,11 +23,11 @@ gen-proto:
 gen-mocks:
 	@eval $(CMD) echo "building mock files"
 	@eval $(CMD) mkdir -p ./internal/mocks
-	@eval $(CMD) mockery -name=DataAccessIface -dir=./internal/dao -output=./internal/mocks
-	@eval $(CMD) mockery -name=SessionIface -dir=./internal/sessions -output=./internal/mocks
+	@eval $(CMD) mockery --name=DataAccessIface --dir=./internal/dao --output=./internal/mocks
+	@eval $(CMD) mockery --name=SessionIface --dir=./internal/sessions --output=./internal/mocks
 	@eval $(CMD) echo "built mock files"
 
-gen: gen-proto gen-mocks vendor
+gen: gen-proto
 
 lint: gen 
 	@eval $(CMD) golangci-lint run -c $(GOLANGCI_FILE) -v ./...
@@ -56,17 +56,10 @@ run-ci:
 	@circleci local execute --job build
 
 db-init:
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) down
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) run -d -p 5432:5432 --name postgres bento_postgres || true
 	@docker exec -it postgres createdb -U postgres bento || true
-	@go run ./cmd/migrate/main.go
-	@docker stop postgres
 
 db-drop:
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) down
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) run -d -p 5432:5432 --name postgres bento_postgres || true
 	@docker exec -it postgres dropdb -U postgres bento
-	@docker stop postgres
 
 test: gen
 	@eval $(CMD) go test ./... -v
@@ -86,15 +79,19 @@ vendor:
 
 install-base:
 	GO111MODULE=off eval $(CMD) go get -u -d github.com/gogo/protobuf/gogoproto
-	@eval $(CMD) go get github.com/gogo/protobuf/protoc-gen-gogo
-	@eval $(CMD) go get github.com/vektra/mockery/.../
-	@eval $(CMD) go get gotest.tools/gotestsum
-	@eval $(CMD) go get -u github.com/cosmtrek/air
+	@eval $(CMD) go install github.com/gogo/protobuf/protoc-gen-gogo@latest
+	@eval $(CMD) go install github.com/vektra/mockery/v2@latest
+	@eval $(CMD) go install gotest.tools/gotestsum@latest
+	@eval $(CMD) go install github.com/cosmtrek/air@latest
 
 install-mac: install-base
 	brew tap bufbuild/buf
 	brew install buf
 	brew install golangci/tap/golangci-lint
+
+install-mac-optional:
+	brew install protoc-gen-gogo
+	brew install mockery
 
 # TODO: complete this
 install: install-base
